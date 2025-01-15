@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bloxfruit Premium Membership</title>
+    <style>
+        /* Animated Gradient Background */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(45deg, #0f0f0f, #1c1c1c, #333, #0f0f0f);
+            background-size: 400% 400%;
+            animation: gradientBackground 10s ease infinite;
+            color: white;
+            text-align: center;
+        }
+
+        @keyframes gradientBackground {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        h1, h2, p {
+            animation: fadeIn 2s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .container {
+            margin-top: 20px;
+            animation: fadeIn 1.5s ease;
+        }
+
+        input, select, button {
+            padding: 15px;
+            margin: 10px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+        }
+
+        input, select {
+            width: 60%;
+            max-width: 300px;
+            background-color: #333;
+            color: white;
+        }
+
+        button {
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            transition: transform 0.3s, background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+            transform: scale(1.1);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .panel {
+            background-color: #1c1c1c;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: left;
+            max-width: 400px;
+            margin: 20px auto;
+        }
+
+        .top-left {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: #444;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .top-left:hover {
+            background-color: #555;
+        }
+
+        .loading {
+            animation: rotate 1s linear infinite;
+            border: 4px solid #333;
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            margin: 20px auto;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Sign-Up Page -->
+<div id="signUpPage">
+    <h1>Sign Up</h1>
+    <p>No password needed. Enter your Discord username to proceed:</p>
+    <div class="container">
+        <input type="text" id="discordUsername" placeholder="Discord username" />
+        <button id="signUpBtn">Sign Up</button>
+    </div>
+</div>
+
+<!-- Main Page -->
+<div id="mainPage" class="hidden">
+    <div class="top-left" id="requestListBtn">Requests</div>
+    <h2>Welcome, <span id="displayUser"></span>!</h2>
+    <p>Enjoy exploring our premium services.</p>
+
+    <button id="buyPermanentBtn">Buy Permanent Premium Membership</button>
+    <button id="buyTemporaryBtn">Buy Temporary Premium Membership</button>
+
+    <!-- Permanent Purchase Process -->
+    <div id="permanentWarning" class="hidden panel">
+        ⚠️ This will cost you Yeti or higher! Payment can't be returned because the fruits might go for giveaways!
+        <br><br>
+        <button id="acceptPermanent">Accept</button>
+        <button id="closePermanent">Close</button>
+    </div>
+
+    <!-- Temporary Purchase Process -->
+    <div id="temporaryWarning" class="hidden panel">
+        ⚠️ This will cost you Quake, Buddha, Shadow, or higher! Payment can't be returned because the fruits might go for giveaways!
+        <br><br>
+        <button id="acceptTemporary">Accept</button>
+        <button id="closeTemporary">Close</button>
+    </div>
+
+    <div id="paymentSection" class="hidden panel">
+        <p>Please type here what fruit you will pay:</p>
+        <input type="text" id="fruitInput" placeholder="Enter the fruit" />
+        <button id="nextBtn">Next</button>
+    </div>
+
+    <div id="robloxSection" class="hidden panel">
+        <p>Please type your Roblox username so we can trade your offer:</p>
+        <input type="text" id="robloxUsername" placeholder="Roblox username" />
+        <button id="proceedDuration">Next</button>
+    </div>
+
+    <div id="durationSection" class="hidden panel">
+        <p>How many months for Temporary Premium?</p>
+        <select id="durationInput">
+            <option value="1">1 Month</option>
+            <option value="2">2 Months</option>
+            <option value="3">3 Months</option>
+            <option value="4">4 Months</option>
+            <option value="5">5 Months</option>
+            <option value="6">6 Months</option>
+            <option value="7">7 Months</option>
+            <option value="8">8 Months</option>
+            <option value="9">9 Months</option>
+        </select>
+        <button id="submitBtn">Submit</button>
+    </div>
+
+    <div id="loadingSection" class="hidden">
+        <div class="loading"></div>
+        <p>Loading...</p>
+    </div>
+</div>
+
+<!-- Requests List -->
+<div id="requestList" class="hidden panel">
+    <h2>Requests</h2>
+    <ul id="requestMembers"></ul>
+    <button id="closeListBtn">Close</button>
+</div>
+
+<script>
+    let requests = [];
+
+    // Check for existing user
+    const existingUser = localStorage.getItem('discordUsername');
+    if (existingUser) {
+        document.getElementById('signUpPage').classList.add('hidden');
+        document.getElementById('mainPage').classList.remove('hidden');
+        document.getElementById('displayUser').textContent = existingUser;
+    }
+
+    // Sign-Up Process
+    document.getElementById('signUpBtn').addEventListener('click', function () {
+        const username = document.getElementById('discordUsername').value;
+        if (!username) {
+            alert('Please enter your Discord username!');
+            return;
+        }
+        localStorage.setItem('discordUsername', username);
+        document.getElementById('signUpPage').classList.add('hidden');
+        document.getElementById('mainPage').classList.remove('hidden');
+        document.getElementById('displayUser').textContent = username;
+    });
+
+    // Requests List
+    document.getElementById('requestListBtn').addEventListener('click', function () {
+        document.getElementById('requestList').classList.remove('hidden');
+        const list = document.getElementById('requestMembers');
+        list.innerHTML = '';
+        requests.forEach(request => {
+            const li = document.createElement('li');
+            li.textContent = `${request.username} (Roblox: ${request.robloxUser}, Fruit: ${request.fruit}, Duration: ${request.duration || 'Permanent'})`;
+            list.appendChild(li);
+        });
+    });
+
+    document.getElementById('closeListBtn').addEventListener('click', function () {
+        document.getElementById('requestList').classList.add('hidden');
+    });
+
+    // Permanent Membership Process
+    document.getElementById('buyPermanentBtn').addEventListener('click', function () {
+        document.getElementById('permanentWarning').classList.remove('hidden');
+    });
+
+    document.getElementById('acceptPermanent').addEventListener('click', function () {
+        document.getElementById('permanentWarning').classList.add('hidden');
+        document.getElementById('paymentSection').classList.remove('hidden');
+    });
+
+    document.getElementById('closePermanent').addEventListener('click', function () {
+        document.getElementById('permanentWarning').classList.add('hidden');
+    });
+
+    // Temporary Membership Process
+    document.getElementById('buyTemporaryBtn').addEventListener('click', function () {
+        document.getElementById('temporaryWarning').classList.remove('hidden');
+    });
+
+    document.getElementById('acceptTemporary').addEventListener('click', function () {
+        document.getElementById('temporaryWarning').classList.add('hidden');
+        document.getElementById('paymentSection').classList.remove('hidden');
+    });
+
+    document.getElementById('closeTemporary').addEventListener('click', function () {
+        document.getElementById('temporaryWarning').classList.add('hidden');
+    });
+
+    document.getElementById('nextBtn').addEventListener('click', function () {
+        const fruit = document.getElementById('fruitInput').value;
+        if (!fruit) {
+            alert('Please enter the fruit you will pay!');
+            return;
+        }
+        localStorage.setItem('fruit', fruit);
+        document.getElementById('paymentSection').classList.add('hidden');
+        document.getElementById('robloxSection').classList.remove('hidden');
+    });
+
+    document.getElementById('proceedDuration').addEventListener('click', function () {
+        const robloxUser = document.getElementById('robloxUsername').value;
+        if (!robloxUser) {
+            alert('Please enter your Roblox username!');
+            return;
+        }
+        localStorage.setItem('robloxUser', robloxUser);
+        document.getElementById('robloxSection').classList.add('hidden');
+        document.getElementById('durationSection').classList.remove('hidden');
+    });
+
+    document.getElementById('submitBtn').addEventListener('click', function () {
+        const duration = document.getElementById('durationInput').value;
+        const username = localStorage.getItem('discordUsername');
+        const robloxUser = localStorage.getItem('robloxUser');
+        const fruit = localStorage.getItem('fruit');
+
+        requests.push({ username, robloxUser, fruit, duration: `${duration} Month(s)` });
+
+        document.getElementById('durationSection').classList.add('hidden');
+        document.getElementById('loadingSection').classList.remove('hidden');
+
+        setTimeout(() => {
+            document.getElementById('loadingSection').classList.add('hidden');
+            alert('Your request has been submitted successfully!');
+        }, 2000);
+    });
+</script>
+
+</body>
+</html>
